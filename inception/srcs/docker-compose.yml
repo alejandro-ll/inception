@@ -13,3 +13,14 @@ services:
       - mariadb_data:/var/lib/mysql
     networks:
       - inception
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    env_file: .env
+    restart: always
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
