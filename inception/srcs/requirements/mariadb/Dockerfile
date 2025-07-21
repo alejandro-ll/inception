@@ -1,11 +1,11 @@
 FROM debian:bullseye
 
-ARG DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && \
-    apt-get install -y mariadb-server && \
+RUN apt update && \
+    apt install -y mariadb-server && \
     rm -rf /var/lib/apt/lists/*
 
-EXPOSE 3306
+COPY tools/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-CMD ["mysqld_safe"]
+EXPOSE 3306
+ENTRYPOINT ["entrypoint.sh"]
