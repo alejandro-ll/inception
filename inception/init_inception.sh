@@ -20,7 +20,6 @@ touch $PROJECT_NAME/srcs/requirements/mariadb/Dockerfile
 
 # Configuración y scripts obligatorios
 touch $PROJECT_NAME/srcs/requirements/nginx/conf/nginx.conf
-touch $PROJECT_NAME/srcs/requirements/mariadb/tools/init.sql
 
 # Ignorar secrets en Git
 echo "/secrets/*" > $PROJECT_NAME/.gitignore
