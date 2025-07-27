@@ -17,4 +17,9 @@ if [ ! -f /var/www/html/wp-config.php ]; then
   chown -R www-data:www-data /var/www/html
 fi
 
-php-fpm7.4 -F
+mkdir -p /run/php
+
+echo "Iniciando php-fpm7.4..."
+php-fpm7.4 --fpm-config /etc/php/7.4/fpm/php-fpm.conf --nodaemonize --force-stderr
+
+
