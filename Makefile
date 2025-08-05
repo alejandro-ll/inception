@@ -1,12 +1,12 @@
-.PHONY: all build up down stop re fclean logs ps
+.PHONY: all build up down stop re fclean logs ps init-folders
 
 all: up
 
-build:
+build: init-folders
 	@echo "🔧 Build de imágenes..."
 	docker compose -f srcs/docker-compose.yml build
 
-up:
+up: init-folders
 	@echo "🚀 Levantando servicios..."
 	docker compose -f srcs/docker-compose.yml up -d
 
@@ -46,3 +46,10 @@ logs:
 
 ps:
 	docker compose -f srcs/docker-compose.yml ps
+
+init-folders:
+	@echo "📂 Comprobando carpetas de volúmenes locales (bind mounts)..."
+	@mkdir -p /home/vboxuser/data/mariadb
+	@mkdir -p /home/vboxuser/data/wordpress
+	@mkdir -p /home/vboxuser/data/wp_socket
+

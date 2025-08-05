@@ -39,8 +39,25 @@ services:
 
 volumes:
   mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/vboxuser/data/mariadb
+      o: bind
+
   wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/vboxuser/data/wordpress
+      o: bind
+
   wp_socket:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/vboxuser/data/wp_socket
+      o: bind
 
 networks:
   inception:
