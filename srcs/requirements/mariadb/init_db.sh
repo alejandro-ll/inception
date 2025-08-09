@@ -62,8 +62,12 @@ EOSQL
     ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
     CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
     GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-
+    
+    -- 🔐 Forzar que root no pueda entrar sin contraseña (desactivar plugin unix_socket)
+    UPDATE mysql.user SET plugin='mysql_native_password' WHERE User='root';
+    
     FLUSH PRIVILEGES;
+
 EOSQL
 
   echo "🛑 FASE 2: Apagando MariaDB temporal..."

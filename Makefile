@@ -52,4 +52,4 @@ init-folders:
 	@mkdir -p /home/vboxuser/data/mariadb
 	@mkdir -p /home/vboxuser/data/wordpress
 	@mkdir -p /home/vboxuser/data/wp_socket
-
+	
