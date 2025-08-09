@@ -2,7 +2,7 @@
 set -e
 
 echo "📢 INICIANDO init_db.sh como ENTRYPOINT"
-env | grep MYSQL
+env | grep MYSQL || true
 
 mkdir -p /run/mysqld
 chown -R mysql:mysql /run/mysqld
@@ -15,7 +15,8 @@ if [ ! -d /var/lib/mysql/mysql ]; then
   mysqld_safe --datadir=/var/lib/mysql --skip-networking --skip-grant-tables &
   pid="$!"
 
-  for i in {30..30}; do
+  # Esperar al socket
+  for i in {30..0}; do
     if [ -S /run/mysqld/mysqld.sock ]; then
       echo "✅ Socket disponible."
       break
@@ -24,7 +25,7 @@ if [ ! -d /var/lib/mysql/mysql ]; then
   done
   sleep 2
 
-  echo "📦 FASE 1: Crear solo la base de datos..."
+  echo "📦 FASE 1: Crear solo la base de datos (sin grants aún)..."
   unset MYSQL_HOST
   mysql -u root -S /run/mysqld/mysqld.sock <<-EOSQL
     CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\` CHARACTER SET utf8 COLLATE utf8_general_ci;
@@ -38,8 +39,9 @@ EOSQL
   mysqld_safe --datadir=/var/lib/mysql &
   pid="$!"
 
+  # Esperar a que responda
   for i in {30..0}; do
-    if mysqladmin ping --silent; then
+    if mysqladmin -S /run/mysqld/mysqld.sock ping --silent; then
       echo "✅ MariaDB con permisos activos."
       break
     fi
@@ -47,27 +49,37 @@ EOSQL
   done
   sleep 2
 
-  echo "🔐 FASE 2: Crear usuarios y privilegios..."
+  echo "🔐 FASE 2: Usuarios y privilegios (forzando password, sin unix_socket)..."
   unset MYSQL_HOST
   mysql -u root -S /run/mysqld/mysqld.sock <<-EOSQL
-    -- Usuario WordPress con acceso desde fuera
-    CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+    -- Asegurar BD (por si FASE 1 se saltó)
+    CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\` CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+    -- Usuario de aplicación: solo TCP (desde cualquier host)
+    CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_PASSWORD}');
     GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
 
-    -- Usuario WordPress para acceso local por socket (debug o admin)
-    CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
-    GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'localhost';
-
-    -- Usuario root por red y por localhost
-    ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
-    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+    -- Root SIEMPRE con contraseña (tanto localhost como %)
+    ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_ROOT_PASSWORD}');
+    CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED VIA mysql_native_password USING PASSWORD('${MYSQL_ROOT_PASSWORD}');
     GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-    
-    -- 🔐 Forzar que root no pueda entrar sin contraseña (desactivar plugin unix_socket)
-    UPDATE mysql.user SET plugin='mysql_native_password' WHERE User='root';
-    
-    FLUSH PRIVILEGES;
 
+    -- Limpiar usuarios anónimos si existen
+    DROP USER IF EXISTS ''@'localhost';
+    DROP USER IF EXISTS ''@'%';
+
+    FLUSH PRIVILEGES;
+EOSQL
+
+  echo "🧹 Desinstalando plugin de autenticación por socket (si existe)..."
+  # En algunas versiones el nombre es 'unix_socket', en otras el SONAME 'auth_socket'
+  mysql -u root -S /run/mysqld/mysqld.sock <<-EOSQL || true
+    UNINSTALL PLUGIN unix_socket;
+    FLUSH PRIVILEGES;
+EOSQL
+  mysql -u root -S /run/mysqld/mysqld.sock <<-EOSQL || true
+    UNINSTALL SONAME 'auth_socket';
+    FLUSH PRIVILEGES;
 EOSQL
 
   echo "🛑 FASE 2: Apagando MariaDB temporal..."
