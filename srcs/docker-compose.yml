@@ -42,21 +42,21 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/vboxuser/data/mariadb
+      device: /home/allera-m/data/mariadb
       o: bind
 
   wordpress_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/vboxuser/data/wordpress
+      device: /home/allera-m/data/wordpress
       o: bind
 
   wp_socket:
     driver: local
     driver_opts:
       type: none
-      device: /home/vboxuser/data/wp_socket
+      device: /home/allera-m/data/wp_socket
       o: bind
 
 networks:

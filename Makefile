@@ -48,8 +48,10 @@ ps:
 	docker compose -f srcs/docker-compose.yml ps
 
 init-folders:
-	@echo "📂 Comprobando carpetas de volúmenes locales (bind mounts)..."
-	@mkdir -p /home/vboxuser/data/mariadb
-	@mkdir -p /home/vboxuser/data/wordpress
-	@mkdir -p /home/vboxuser/data/wp_socket
+	@echo "📂 Creando carpetas de volúmenes en /home/allera-m/data..."
+	@sudo mkdir -p /home/allera-m/data/mariadb
+	@sudo mkdir -p /home/allera-m/data/wordpress
+	@sudo mkdir -p /home/allera-m/data/wp_socket
+	@sudo chown -R $(USER):$(USER) /home/allera-m/data
+	@sudo chmod -R 755 /home/allera-m/data
 	
