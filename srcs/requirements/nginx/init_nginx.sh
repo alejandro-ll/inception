@@ -8,7 +8,7 @@ mkdir -p $SSL_DIR
 if [ ! -f "$SSL_DIR/server.crt" ] || [ ! -f "$SSL_DIR/server.key" ]; then
   echo "Generando certificados SSL autofirmados..."
   openssl req -x509 -nodes -days 365 \
-    -subj "/CN=allera.42.fr" \
+    -subj "/CN=allera-m.42.fr" \
     -newkey rsa:2048 \
     -keyout "$SSL_DIR/server.key" \
     -out "$SSL_DIR/server.crt"

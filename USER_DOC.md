@@ -13,7 +13,7 @@ Los servicios levantados:
 
 ## Acceder al sitio
 Abre en tu navegador:
-- https://allera.42.fr
+- https://allera-m.42.fr
 
 El certificado es autofirmado (creado por [srcs/requirements/nginx/init_nginx.sh](srcs/requirements/nginx/init_nginx.sh)), acepta la excepción de seguridad en el navegador.
 
